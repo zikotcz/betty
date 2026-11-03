@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Přístupy ke strojům</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--text:#1b1f24;--muted:#6b7280;--line:#e3e6ea;--hover:#f9fafb;--accent:#2563eb;--warn:#b45309;--warnbg:#fef3c7;--chip:#eef2ff;--new:#047857;--newbg:#d1fae5;--edit:#6d28d9;--editbg:#ede9fe;--mark:#fde68a;--danger:#dc2626;--hh:120px}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1115;--card:#171a21;--text:#e6e8eb;--muted:#9aa3ad;--line:#2a2f38;--hover:#1c2029;--accent:#60a5fa;--warn:#fbbf24;--warnbg:#3a2e0e;--chip:#1e2533;--new:#34d399;--newbg:#0d3326;--edit:#c4b5fd;--editbg:#2e1f4d;--mark:#854d0e;--danger:#f87171}}
+*{box-sizing:border-box}
+html{scroll-padding-top:calc(var(--hh) + 40px)}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+header{position:sticky;top:0;z-index:2;background:var(--bg);border-bottom:1px solid var(--line)}
+.hin{max-width:960px;margin:0 auto;padding:14px 16px 10px}
+.top{display:flex;align-items:baseline;gap:12px;margin-bottom:10px}
+h1{font-size:18px;margin:0}
+#count{margin-left:auto;color:var(--muted);font-size:13px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.sw{position:relative}
+.sw svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
+#q{width:100%;padding:11px 12px 11px 38px;font-size:16px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text)}
+#q:focus{outline:2px solid var(--accent);outline-offset:0;border-color:transparent}
+.bar{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;align-items:center}
+.f{border:1px solid var(--line);background:var(--card);color:var(--text);padding:6px 11px;border-radius:999px;font-size:13px;cursor:pointer;white-space:nowrap}
+.f:hover{border-color:var(--muted)}
+.f.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.f .n{opacity:.6;margin-left:5px;font-variant-numeric:tabular-nums}
+.f.on .n{opacity:.85}
+.sep{width:1px;height:20px;background:var(--line);margin:0 2px;flex:none}
+#export.dirty{border-color:var(--warn);color:var(--warn);background:var(--warnbg)}
+#export.dirty::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--warn);margin-right:6px;vertical-align:1px}
+main{padding:12px 16px 110px;max-width:960px;margin:0 auto}
+table{width:100%;border-collapse:separate;border-spacing:0;background:var(--card);border:1px solid var(--line);border-radius:10px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top;word-break:break-word}
+th{position:sticky;top:var(--hh);z-index:1;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);background:var(--chip);user-select:none;white-space:nowrap}
+th:first-child{border-top-left-radius:9px}th:last-child{border-top-right-radius:9px}
+th[data-k]{cursor:pointer}th[data-k]:hover{color:var(--text)}
+th .ar{display:inline-block;width:1em;margin-left:2px;color:var(--accent)}
+tbody tr:hover td{background:var(--hover)}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:last-child td:first-child{border-bottom-left-radius:9px}tbody tr:last-child td:last-child{border-bottom-right-radius:9px}
+tr.flash td{animation:flash 1.6s ease-out}
+@keyframes flash{0%,30%{background:var(--newbg)}100%{background:transparent}}
+td.m{font-weight:600}
+td.a{width:1%;white-space:nowrap;text-align:right;padding:5px 6px}
+.ed{border:0;background:none;color:var(--muted);cursor:pointer;padding:4px 7px;border-radius:6px;font-size:15px;line-height:1}
+.ed:hover{background:var(--chip);color:var(--text)}
+@media (hover:hover){.ed{opacity:0}tr:hover .ed,.ed:focus-visible{opacity:1}}
+.cp{cursor:pointer;border-radius:5px;padding:1px 4px;margin:-1px -4px}
+.cp:hover{background:var(--chip)}
+.pw{font-family:ui-monospace,Menlo,Consolas,monospace}
+.empty{color:var(--muted)}
+.nores{padding:28px 10px;text-align:center}
+.tag{display:inline-block;font-size:11px;font-weight:600;border-radius:4px;padding:0 5px;margin-left:6px;vertical-align:1px}
+.dup{color:var(--warn);background:var(--warnbg)}
+.new{color:var(--new);background:var(--newbg)}
+.edt{color:var(--edit);background:var(--editbg)}
+mark{background:var(--mark);color:inherit;border-radius:2px}
+.masked .pw{filter:blur(5px);transition:filter .15s}
+.masked .pw.rev{filter:none}
+@media (hover:hover){.masked .pw:hover{filter:none}}
+.cam-m{display:none;color:var(--muted);font-size:12px;margin-top:3px}
+@media (max-width:560px){
+  th:nth-child(4),td:nth-child(4){display:none}.cam-m{display:block}
+  .bar{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:10px -16px 0;padding:0 16px 2px}
+  .bar::-webkit-scrollbar{display:none}.f{flex:none}
+}
+#plus{position:fixed;right:20px;bottom:20px;width:58px;height:58px;border-radius:50%;border:0;background:var(--accent);color:#fff;font-size:32px;line-height:1;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.25);z-index:3}
+#plus:hover{filter:brightness(1.08)}
+#ov{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:16px;z-index:4}
+#ov.show{display:flex}
+form{background:var(--card);border-radius:14px;padding:18px;width:100%;max-width:420px;box-shadow:0 10px 40px rgba(0,0,0,.3)}
+form h2{margin:0 0 14px;font-size:17px}
+label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
+form input{width:100%;padding:10px 11px;font-size:16px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--text)}
+form input:focus{outline:2px solid var(--accent);outline-offset:0;border-color:transparent}
+.hint{font-size:12px;color:var(--warn);margin-top:4px}
+.hint:empty{display:none}
+.btns{display:flex;gap:8px;align-items:center;margin-top:18px}
+.btns .sp{flex:1}
+.btns button{padding:9px 16px;border-radius:8px;font-size:15px;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--text)}
+.btns .ok{background:var(--accent);border-color:var(--accent);color:#fff}
+.btns .lnk{border-color:transparent;background:none;padding:9px 6px;color:var(--muted);font-size:14px}
+.btns .lnk:hover{color:var(--text)}
+.btns .danger{color:var(--danger)}
+.btns .danger:hover{color:var(--danger);text-decoration:underline}
+#toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:5;max-width:calc(100% - 32px);text-align:center}
+#toast.show{opacity:1}
+</style>
+</head>
+<body>
+<header><div class="hin">
+  <div class="top"><h1>Přístupy ke strojům</h1><span id="count"></span></div>
+  <div class="sw">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="q" type="search" placeholder="Hledat stroj, jméno nebo heslo…" autocomplete="off" spellcheck="false" aria-label="Hledat">
+  </div>
+  <div class="bar">
+    <button class="f on" data-g="all">Vše<span class="n"></span></button>
+    <button class="f" data-g="PM">PM<span class="n"></span></button>
+    <button class="f" data-g="PV">PV<span class="n"></span></button>
+    <button class="f" data-g="other">Ostatní<span class="n"></span></button>
+    <span class="sep"></span>
+    <button class="f" id="filled">Jen vyplněné</button>
+    <button class="f" id="dups">Duplicity</button>
+    <button class="f" id="mask">Skrýt hesla</button>
+    <span class="sep"></span>
+    <button class="f" id="export">Uložit soubor</button>
+    <button class="f" id="logout" title="Zapomene uložené heslo v tomto prohlížeči a zamkne stránku">Odhlásit</button>
+  </div>
+</div></header>
+<main>
+  <table>
+    <thead><tr><th data-k="0">Přípravek<span class="ar"></span></th><th data-k="1">Uživatel<span class="ar"></span></th><th data-k="2">Heslo<span class="ar"></span></th><th data-k="3">Heslo ke kamerám<span class="ar"></span></th><th aria-label="Akce"></th></tr></thead>
+    <tbody id="tb"></tbody>
+  </table>
+</main>
+
+<button id="plus" aria-label="Přidat záznam" title="Přidat záznam">+</button>
+
+<div id="ov">
+  <form id="fm" autocomplete="off">
+    <h2 id="ft">Nový záznam</h2>
+    <label for="i1">Název přípravku *</label><input id="i1" required spellcheck="false"><div class="hint" id="h1"></div>
+    <label for="i2">Uživatelské jméno</label><input id="i2" list="users" spellcheck="false">
+    <label for="i3">Heslo</label><input id="i3" spellcheck="false">
+    <label for="i4">Heslo ke kamerám</label><input id="i4" spellcheck="false">
+    <datalist id="users"></datalist>
+    <div class="btns">
+      <button type="button" id="fdel" class="lnk danger">Smazat</button>
+      <button type="button" id="frev" class="lnk">Vrátit původní</button>
+      <span class="sp"></span>
+      <button type="button" id="cancel">Zrušit</button><button type="submit" class="ok" id="fok">Přidat</button>
+    </div>
+  </form>
+</div>
+
+<div id="toast" role="status"></div>
+
+<script type="application/json" id="data">
+[["-","service","service",""],["N/A","","service",""],["N/A","","service",""],["N/A","","",""],
+["PM003","-","čip. karta",""],["PM004","-","čip. karta",""],["PM006","-","čip. karta",""],["PM007","-","čip. karta",""],["PM012","-","čip. karta",""],["PM013","-","čip. karta",""],
+["PM059","","",""],["PM060","","",""],["PM060","","",""],["PM061","","čip. karta",""],["PM061","","",""],
+["PM062","admin","sk326",""],["PM070","-","-",""],["PM071","","",""],["PM078","","",""],["PM086","admin","383344",""],
+["PM089","","",""],["PM090","","",""],["PM091","","",""],["PM092","","",""],["PM093","","",""],["PM097","","",""],["PM098","","",""],
+["PM102","kdk","2021",""],["PM104","99999","2021",""],["PM105","service","service",""],["PM106","service / admin","service / so3xy9",""],
+["PM107_1","-","4830",""],["PM107_2","-","4831",""],["PM108","-","3433",""],["PM109","","",""],["PM110","-","3433",""],["PM110","","",""],
+["PM111","99999","2021",""],["PM112","","",""],["PM113","99999","3833",""],["PM114","99999","2021",""],["PM115","99999","2021",""],
+["PM116_1","","",""],["PM116_2","","",""],["PM117","","",""],["PM119","","",""],["PM120","","3833",""],["PM121","","",""],["PM122","-","3833",""],
+["PM123_1","- / trio","čip. karta / 2023",""],["PM123_2","- / trio","čip. karta / 2023",""],["PM124","trio","3833",""],["PM125","-","2023",""],
+["PM131","admin","3833",""],["PM131 (počítadlo)","setter","3833",""],["PM132","","",""],["PM133","","4246",""],
+["PM134 LL","service","vw336",""],["PM134 RL","service","vw337",""],["PM135","service","service",""],["PM141","","",""],["PM142","-","-",""],
+["PM136","-","kdk",""],["PM137","-","-",""],["PM138","","-",""],["PM139","","4246",""],["PM140","-","4246",""],
+["PM141","","",""],["PM141_1","","",""],["PM141_2","","",""],["PM141_3","","",""],["PM142","admin","admin",""],["PM143","service","service",""],
+["PM144","trio","2025","-"],["PM145","Admin","12345678",""],["PM146","","",""],["PM146","admin","admin",""],
+["PM148","","",""],["PM148","admin","admin",""],["PM148_1","admin","admin",""],["PM154","service","vw336",""],["PM155","trio","2025",""],
+["PM156","","",""],["PM157","","",""],["PM158","trio","2025",""],["PM159","","",""],["PM160","","",""],["PM161","service","vw336",""],
+["PM162","admin / technolog / udrzba / mistr","kdk123 / kdk111 / udrzba / mistrkdk",""],["PM163","","kdk123",""],["PM164","KDK","2026",""],
+["PM165","","2025",""],["PM166","trio","2025","-"],["PM167","Admin","melbeck1",""],["PM168","","4246",""],["PM169","","4246",""],["PM170","","",""],
+["PM171","","4246",""],["PM172","Admin","melbeck1",""],["PM173","","",""],["PM174","-","22525",""],["PM176","","",""],["PM176_1","","",""],["PM176_2","","",""],
+["PM177","admin","admin",""],["PM178","","",""],["PM180","admin","admin",""],["PM181","","qr kod (709)",""],["PM182","technik","100",""],["PM183","","qr kod (709)",""],
+["PML034","-","1731","2067"],["PML035","-","1731",""],["PMxxx","-","-",""],["PMxxx","-","-",""],
+["PV186","","",""],["PV042","","servis",""],["PV043","","",""],["PV051","admin","3503",""],
+["PV058_1","-","čip. karta",""],["PV058_2","-","čip. karta",""],["PV059","-","čip. karta",""],["PV060","-","čip. karta",""],
+["PV061","","",""],["PV062","","",""],["PV140","","",""],["PV090","-","-",""],["PV091","99999","2021",""],
+["PV092","","",""],["PV093","","",""],["PV094","","",""],["PV096","","",""],["PV097","","",""],["PV099","","2021",""],["PV100","99999","2021",""],
+["PV101","admin","3505",""],["PV102","-","",""],["PV103","","",""],["PV104","99999","2021",""],["PV105","-","3503",""],["PV106","","",""],["PV107","","",""],
+["PV109","99999","2021",""],["PV110","-","-",""],["PV111","","",""],["PV112","","",""],["PV113_1","","3833",""],["PV113_2","","3833",""],
+["PV114","","",""],["PV115","","",""],["PV116","","",""],["PV117","99999","383344",""],["PV118","99999","383344",""],
+["PV119","-","4246",""],["PV120","-","5654",""],["PV121","-","",""],["PV122","-","3833",""],["PV123","-","3035",""],["PV124","-","3833",""],
+["PV125","","3035",""],["PV126","-","1234",""],["PV127","","3111",""],["PV129","","kral",""],["PV130","","kral",""],["PV131","","",""],["PV132","","",""],
+["PV133","kdk","2023",""],["PV134","kdk","2023",""],["PV139","admin","admin",""],["PV140","admin","admin",""],["PV141","","",""],["PV142","","",""],
+["PV143","admin","admin",""],["PV144","","100",""],["PV145","Bez jména","radek1",""],["PV149","","",""],["PV150","","","383344"],["PV151","","",""],
+["PV172","admin","admin",""],["PV","admin","admin",""],["PV152","","",""],["PV","admin","admin",""],["PV","admin","admin",""],
+["PV153","","",""],["PV154","","",""],["PV155","","",""],["PV157","","",""],["PV158","-","-",""],["PV159","-","-",""],
+["PV160_1","trio","2025",""],["PV160_2","trio","2025",""],["PV161","trio","2025",""],["PV162","admin","admin",""],["PV163","admin","admin",""],
+["PV164","trio","2025","10.50.12.200 / -"],["PV165","","",""],["PV166_1","USER2","6147",""],["PV166_2","USER2","6147",""],["PV167","USER2","6147",""],
+["PV168","USER2","6147",""],["PV169","USER2","6147",""],["PV170","","",""],["PV171","trio","2025",""],["PV172","","",""],
+["PV176","admin","admin",""],["PV177","admin","admin",""],["PV178","","",""],["PV179","admin","admin",""],["PV180","admin","admin",""],
+["PV181","trio","2025",""],["PV182","admin","admin",""],
+["XXxxx","-","extensa",""],["XXxxx","○○○○○○","↓↓↑↑○○",""],["XXxxx","","",""]]
+</script>
+
+<script>
+// Stránka je chráněná zvenku: přístup hlídá Cloudflare Access (povolené e-maily) a obsah šifruje StatiCrypt (heslo).
+const LKEY="pristupy-zmeny-v4",SKEY="pristupy-nastaveni-v1";
+const $=id=>document.getElementById(id);
+const store={
+  get(k,d){try{const v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}}
+};
+
+// Data
+const RAW=JSON.parse($("data").textContent);
+const BASE=RAW.map((r,i)=>[r[0],r[1],r[2],r[3],r[4]||"b"+i]);
+const baseById=new Map(BASE.map(r=>[r[4],r]));
+const same=(a,b)=>[0,1,2,3].every(i=>(a[i]||"")===(b[i]||""));
+const S=Object.assign({sort:0,dir:1,masked:false},store.get(SKEY,{}));
+
+// Přidané a upravené záznamy se drží v tomto prohlížeči, dokud se neuloží nová verze souboru
+const L=store.get(LKEY,{});
+let added=Array.isArray(L.added)?L.added.filter(r=>Array.isArray(r)&&!baseById.has(r[4])):[];
+let edits=L.edits&&typeof L.edits==="object"?L.edits:{};
+for(const id in edits){const x=baseById.get(id);if(!x||(edits[id]&&same(edits[id],x)))delete edits[id]}
+const changed=()=>added.length>0||Object.keys(edits).length>0;
+const sig=()=>JSON.stringify([added,edits]);
+let savedSig=null;
+const dirty=()=>changed()&&sig()!==savedSig;
+function saveAll(){
+  if(changed())return store.set(LKEY,{added,edits});
+  try{localStorage.removeItem(LKEY)}catch(e){}
+  return true;
+}
+saveAll();
+
+function rows(){
+  const out=[];
+  for(const b of BASE){
+    const id=b[4];
+    if(id in edits){if(edits[id])out.push({r:edits[id],id,st:"edit"})}
+    else out.push({r:b,id,st:""});
+  }
+  for(const a of added)out.push({r:a,id:a[4],st:"new"});
+  return out;
+}
+
+const GENERIC=new Set(["-","N/A","PV","PMxxx","XXxxx"]);
+const val=s=>!!s&&s!=="-";
+const grp=m=>/^PM/.test(m)&&m!=="PMxxx"?"PM":/^PV/.test(m)?"PV":"other";
+const norm=s=>String(s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const coll=new Intl.Collator("cs",{numeric:true,sensitivity:"base"});
+let g="all",onlyFilled=false,onlyDup=false;
+const tb=$("tb"),q=$("q"),count=$("count");
+
+function toast(msg,ms){const x=$("toast");x.textContent=msg;x.classList.add("show");clearTimeout(x._t);x._t=setTimeout(()=>x.classList.remove("show"),ms||1800)}
+
+// Zvýrazní všechny výskyty hledaných slov
+function hl(s,toks){
+  const n=norm(s);
+  if(!toks.length||n.length!==s.length)return esc(s);
+  const mk=new Array(s.length).fill(false);
+  for(const t of toks)for(let i=n.indexOf(t);i>=0;i=n.indexOf(t,i+1))mk.fill(true,i,i+t.length);
+  let o="",on=false;
+  for(let i=0;i<s.length;i++){if(mk[i]!==on){o+=on?"</mark>":"<mark>";on=mk[i]}o+=esc(s[i])}
+  return o+(on?"</mark>":"");
+}
+const cell=(s,toks,pw)=>!s?'<span class="empty">—</span>':!val(s)?`<span class="empty">${esc(s)}</span>`
+  :`<span class="cp${pw?" pw":""}" data-c="${esc(s)}" title="Kliknutím zkopírujete">${hl(s,toks)}</span>`;
+
+function render(){
+  const list=rows(),cnt={},gc={all:list.length,PM:0,PV:0,other:0};
+  for(const x of list){const k=norm(x.r[0]);cnt[k]=(cnt[k]||0)+1;gc[grp(x.r[0])]++}
+  document.querySelectorAll("[data-g] .n").forEach(e=>e.textContent=gc[e.parentNode.dataset.g]);
+  const toks=norm(q.value).split(/\s+/).filter(Boolean);
+  const isDup=m=>cnt[norm(m)]>1&&!GENERIC.has(m);
+  const vis=list.filter(({r:[m,u,p,c]})=>{
+    if(g!=="all"&&grp(m)!==g)return false;
+    if(onlyFilled&&!(val(u)||val(p)||val(c)))return false;
+    if(onlyDup&&!isDup(m))return false;
+    if(toks.length){const h=norm([m,u,p,c].join(" "));if(!toks.every(t=>h.includes(t)))return false}
+    return true;
+  });
+  if(S.sort>=0){
+    const k=S.sort;
+    vis.sort((a,b)=>{
+      const x=a.r[k],y=b.r[k];
+      if(val(x)!==val(y))return val(x)?-1:1;   // prázdné vždy na konec
+      return coll.compare(x||"",y||"")*S.dir||coll.compare(a.r[0],b.r[0]);
+    });
+  }
+  tb.innerHTML=vis.map(({r:[m,u,p,c],id,st})=>{
+    const d=cnt[norm(m)];
+    return `<tr data-id="${esc(id)}"><td class="m">${hl(m,toks)}`
+      +(isDup(m)?`<span class="tag dup" title="Přípravek je v seznamu ${d}×">${d}×</span>`:"")
+      +(st==="new"?'<span class="tag new">nové</span>':st==="edit"?'<span class="tag edt">upraveno</span>':"")
+      +`</td><td>${cell(u,toks)}</td>`
+      +`<td>${cell(p,toks,1)}${c?`<div class="cam-m">Kamery: ${cell(c,toks,1)}</div>`:""}</td>`
+      +`<td>${c?cell(c,toks,1):""}</td>`
+      +`<td class="a"><button class="ed" title="Upravit" aria-label="Upravit">✎</button></td></tr>`;
+  }).join("")||'<tr><td colspan="5" class="empty nores">Nic nenalezeno</td></tr>';
+  count.textContent=vis.length===list.length?list.length+" záznamů":vis.length+" z "+list.length;
+  document.querySelectorAll("th[data-k]").forEach(th=>{
+    const on=+th.dataset.k===S.sort;
+    th.querySelector(".ar").textContent=on?(S.dir>0?"↑":"↓"):"";
+    th.setAttribute("aria-sort",on?(S.dir>0?"ascending":"descending"):"none");
+  });
+  const ex=$("export"),dn=dirty();
+  ex.classList.toggle("dirty",dn);
+  ex.title=dn?"Máte neuložené změny – stáhněte novou verzi souboru a znovu ji zašifrujte StatiCryptem"
+    :"Stáhne novou (nezašifrovanou) verzi souboru se všemi změnami";
+}
+
+function flash(id){
+  const tr=tb.querySelector(`tr[data-id="${CSS.escape(id)}"]`);if(!tr)return;
+  tr.scrollIntoView({block:"nearest",behavior:"smooth"});
+  tr.classList.add("flash");setTimeout(()=>tr.classList.remove("flash"),1700);
+}
+
+// Filtry a řazení
+document.querySelectorAll("[data-g]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-g]").forEach(x=>x.classList.remove("on"));b.classList.add("on");g=b.dataset.g;render()});
+$("filled").onclick=e=>{onlyFilled=!onlyFilled;e.currentTarget.classList.toggle("on",onlyFilled);render()};
+$("dups").onclick=e=>{onlyDup=!onlyDup;e.currentTarget.classList.toggle("on",onlyDup);render()};
+const applyMask=()=>{document.body.classList.toggle("masked",S.masked);$("mask").classList.toggle("on",S.masked)};
+$("mask").onclick=()=>{S.masked=!S.masked;store.set(SKEY,S);applyMask()};
+document.querySelectorAll("th[data-k]").forEach(th=>th.onclick=()=>{
+  const k=+th.dataset.k;
+  if(S.sort!==k){S.sort=k;S.dir=1}else if(S.dir>0)S.dir=-1;else S.sort=-1;   // vzestupně → sestupně → původní pořadí
+  store.set(SKEY,S);render();
+});
+q.oninput=render;
+
+// Kopírování
+function copy(t){
+  const fb=()=>{
+    const a=document.createElement("textarea");a.value=t;a.style.cssText="position:fixed;top:0;opacity:0";
+    document.body.appendChild(a);a.select();let ok=false;try{ok=document.execCommand("copy")}catch(e){}
+    a.remove();toast(ok?"Zkopírováno":"Kopírování se nepovedlo");
+  };
+  if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(t).then(()=>toast("Zkopírováno"),fb);else fb();
+}
+tb.onclick=e=>{
+  const ed=e.target.closest(".ed");if(ed){openForm(ed.closest("tr").dataset.id);return}
+  const el=e.target.closest(".cp");if(!el)return;
+  copy(el.dataset.c);
+  if(el.classList.contains("pw")){el.classList.add("rev");clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove("rev"),2500)}
+};
+
+// Přidávání a úpravy
+const ov=$("ov"),fm=$("fm"),inp=["i1","i2","i3","i4"].map($);
+let editing=null;
+function hint(){
+  const m=norm(inp[0].value.trim()),n=m?rows().filter(x=>x.id!==editing&&norm(x.r[0])===m).length:0;
+  $("h1").textContent=n?`Tento přípravek už v seznamu je (${n}×)`:"";
+}
+function openForm(id){
+  const list=rows(),x=id?list.find(y=>y.id===id):null;
+  editing=x?id:null;
+  fm.reset();
+  if(x)inp.forEach((el,i)=>el.value=x.r[i]||"");
+  $("ft").textContent=x?"Upravit záznam":"Nový záznam";
+  $("fok").textContent=x?"Uložit":"Přidat";
+  $("fdel").hidden=!x;
+  $("frev").hidden=!(x&&x.st==="edit");
+  const fr={};list.forEach(y=>{const u=y.r[1];if(val(u))fr[u]=(fr[u]||0)+1});
+  $("users").innerHTML=Object.keys(fr).sort((a,b)=>fr[b]-fr[a]).slice(0,15).map(u=>`<option value="${esc(u)}">`).join("");
+  hint();
+  ov.classList.add("show");setTimeout(()=>inp[x?1:0].focus(),50);
+}
+const close=()=>ov.classList.remove("show");
+const done=(ok,msg,id)=>{close();render();if(id)flash(id);toast(ok?msg:msg+" – jen dočasně, klikněte na „Uložit soubor“")};
+inp[0].oninput=hint;
+$("plus").onclick=()=>openForm(null);
+$("cancel").onclick=close;
+ov.onclick=e=>{if(e.target===ov)close()};
+fm.onsubmit=e=>{
+  e.preventDefault();
+  const v=inp.map(i=>i.value.trim());if(!v[0])return;
+  const wasEdit=!!editing;let id=editing;
+  if(id){
+    const a=added.find(r=>r[4]===id);
+    if(a)a.splice(0,4,...v);
+    else if(same(v,baseById.get(id)))delete edits[id];
+    else edits[id]=v;
+  }else{
+    id="a"+Date.now();added.push([...v,id]);q.value="";
+  }
+  done(saveAll(),wasEdit?"Uloženo":"Přidáno",id);
+};
+$("fdel").onclick=()=>{
+  if(!confirm("Smazat tento záznam?"))return;
+  if(added.some(r=>r[4]===editing))added=added.filter(r=>r[4]!==editing);else edits[editing]=null;
+  done(saveAll(),"Smazáno");
+};
+$("frev").onclick=()=>{const id=editing;delete edits[id];done(saveAll(),"Vráceno na původní",id)};
+
+// Uložení nové verze souboru se všemi změnami (nezašifrovaná – před nahráním ji zašifrujte StatiCryptem)
+function exportFile(){
+  const data=rows().map(x=>[x.r[0],x.r[1],x.r[2],x.r[3],x.id]);
+  const clone=document.documentElement.cloneNode(true);
+  clone.querySelector("#data").textContent="\n"+JSON.stringify(data)+"\n";
+  ["#tb","#users","#count","#toast","#h1"].forEach(s=>clone.querySelector(s).innerHTML="");
+  clone.querySelectorAll("[data-g] .n").forEach(e=>e.textContent="");
+  clone.querySelector("#ov").classList.remove("show");
+  clone.querySelector("body").removeAttribute("class");
+  const html="<!doctype html>\n"+clone.outerHTML;
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([html],{type:"text/html"}));
+  a.download="pristupy-stroju.html";
+  document.body.appendChild(a);a.click();a.remove();
+  savedSig=sig();render();
+}
+$("export").onclick=()=>{exportFile();toast("Soubor stažen. Před nahráním ho znovu zašifrujte StatiCryptem.",5000)};
+
+// Odhlášení: zapomene heslo zapamatované StatiCryptem a stránku znovu zamkne
+$("logout").onclick=()=>{
+  try{Object.keys(localStorage).filter(k=>/^staticrypt/i.test(k)).forEach(k=>localStorage.removeItem(k))}catch(e){}
+  location.reload();
+};
+
+// Klávesy: / = hledat, Esc = zavřít / vymazat hledání
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){
+    if(ov.classList.contains("show"))close();
+    else if(document.activeElement===q&&q.value){q.value="";render()}
+  }else if(e.key==="/"&&!/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)&&!ov.classList.contains("show")){
+    e.preventDefault();q.focus();q.select();
+  }
+});
+
+// Výška hlavičky kvůli přilepenému záhlaví tabulky
+const hdr=document.querySelector("header");
+const setH=()=>document.documentElement.style.setProperty("--hh",hdr.offsetHeight+"px");
+if(window.ResizeObserver)new ResizeObserver(setH).observe(hdr);
+setH();applyMask();render();
+</script>
+</body>
+</html>
