@@ -592,7 +592,7 @@ function loadCover(s){
     ol.innerHTML=html;
   }
   function check(){
-    const on=location.hash==='#seznam-pisnicek';
+    let h=location.hash; try{h=decodeURIComponent(h)}catch(e){} const on=h.toLowerCase().normalize('NFD').replace(/[^a-z]/g,'')==='seznampisnicek';
     if(on) build();
     box.classList.toggle('show',on);
     if(on && typeof finish==='function') finish();
