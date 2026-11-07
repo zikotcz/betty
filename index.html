@@ -545,14 +545,20 @@ function renderSong(s){
       <span class="sp-open">Otevřít ve Spotify</span></span></a>`;
   loadCover(s);
 }
+function normT(x){ return (x||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\(.*?\)|\[.*?\]/g,'').replace(/\s-\s.*$/,'').replace(/feat\..*$/,'').replace(/&/g,'and').replace(/[^a-z0-9]/g,''); }
+/* ukázka a obal: přes pevné iTunes ID (s.it) => vždy přesně ta písnička; bez ID jen při přesné shodě názvu i interpreta, jinak nic nehraje */
 function loadCover(s){
-  const cb='cov'+Date.now();
+  const cb='cov'+Date.now()+Math.floor(Math.random()*1e6);
   const sc=document.createElement('script');
   window[cb]=function(r){
     try{
       const res=(r&&r.results)||[];
-      const art=(s.a.split(/,|&/)[0]||'').trim().toLowerCase();
-      const hit=res.find(x=>(x.artistName||'').toLowerCase().includes(art))||res[0];
+      let hit=null;
+      if(s.it) hit=res.find(x=>x.trackId===s.it)||null;
+      else {
+        const want=normT(s.t), arts=s.a.split(/,|&/).map(normT).filter(Boolean);
+        hit=res.find(x=>normT(x.trackName)===want && arts.some(a=>{const n=normT(x.artistName); return n.includes(a)||a.includes(n);}))||null;
+      }
       if(hit&&hit.previewUrl&&s===TODAY_SONG){ PREVIEW=hit.previewUrl; playPreview(); }
       if(hit&&hit.artworkUrl100&&document.getElementById('spcover')){
         const img=new Image();
@@ -562,8 +568,11 @@ function loadCover(s){
     }catch(_){}
     delete window[cb]; sc.remove();
   };
-  const term=(s.t.replace(/\(.*?\)/g,'')+' '+s.a.split(/,|&/)[0]).trim();
-  sc.src='https://itunes.apple.com/search?entity=song&limit=5&country=CZ&term='+encodeURIComponent(term)+'&callback='+cb;
+  if(s.it) sc.src='https://itunes.apple.com/lookup?country='+(s.ic||'CZ')+'&id='+s.it+'&callback='+cb;
+  else {
+    const term=(s.t.replace(/\(.*?\)/g,'')+' '+s.a.split(/,|&/)[0]).trim();
+    sc.src='https://itunes.apple.com/search?entity=song&limit=50&country=CZ&term='+encodeURIComponent(term)+'&callback='+cb;
+  }
   sc.onerror=()=>{ delete window[cb]; sc.remove(); };
   document.body.appendChild(sc);
 }
